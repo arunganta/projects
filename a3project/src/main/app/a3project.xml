@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd">
+    <db:generic-config name="Generic_Database_Configuration" url="jdbc:sqlserver://localhost;database=newdatabase;user=sa;password=1111" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" doc:name="Generic Database Configuration"/>
+    <db:generic-config name="Generic_Database_Configuration1" url="jdbc:sqlserver://localhost;database=newdatabase;user=sa;password=1111" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" doc:name="Generic Database Configuration"/>
+    <db:generic-config name="Generic_Database_Configuration2" url="jdbc:sqlserver://localhost;database=newdatabase;user=sa;password=1111 " driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" doc:name="Generic Database Configuration"/>
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <flow name="a3projectFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
+        <set-variable variableName="artist" value="#[message.inboundProperties.'http.query.params'.artist]" doc:name="Variable"/>
+        <logger level="INFO" doc:name="Logger"/>
+        <choice doc:name="Choice">
+            <when expression="flowVars.artist==&quot;bob&quot;">
+                <flow-ref name="c" doc:name="c"/>
+            </when>
+            <when expression="flowVars.artist==&quot;Dolly&quot;">
+                <flow-ref name="a" doc:name="a"/>
+            </when>
+            <when expression="flowVars.artist==&quot;Gary&quot;">
+                <flow-ref name="b" doc:name="b"/>
+            </when>
+            <otherwise>
+                <set-payload value="#[&quot;mama tappu ichinav value&quot;]" doc:name="Set Payload"/>
+                <logger level="INFO" doc:name="Logger"/>
+            </otherwise>
+        </choice>
+        <logger level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="a">
+        <db:select config-ref="Generic_Database_Configuration2" doc:name="Database">
+            <db:parameterized-query><![CDATA[SELECT * FROM [newdatabase].[dbo].[cd] where [artist]=#[flowVars.artist]]]></db:parameterized-query>
+        </db:select>
+        <mulexml:object-to-xml-transformer doc:name="Object to XML"/>
+    </flow>
+    <flow name="b">
+        <db:select config-ref="Generic_Database_Configuration1" doc:name="Database">
+            <db:parameterized-query><![CDATA[SELECT * FROM [newdatabase].[dbo].[cd] where [artist]=#[flowVars.artist]]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+    <flow name="c">
+        <db:select config-ref="Generic_Database_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[SELECT * FROM [newdatabase].[dbo].[cd] where [artist]=#[flowVars.artist]]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+</mule>
